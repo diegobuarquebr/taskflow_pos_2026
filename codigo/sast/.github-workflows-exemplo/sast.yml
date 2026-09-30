@@ -45,8 +45,7 @@ jobs:
             --config=p/python \
             --config=p/flask \
             --config=p/security-audit \
-            --error \
-            app-exemplo/
+            --error
         # --error faz o Semgrep retornar exit code != 0 quando há findings,
         # o que automaticamente marca este step (e o job) como "failed".
 
