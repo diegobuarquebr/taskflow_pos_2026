@@ -4,11 +4,11 @@
 #
 # NAO instale estas versoes fora do ambiente de laboratorio da disciplina.
 
-Flask==0.12.2
-Jinja2==2.11.3
-Werkzeug==0.15.4
+Flask==3.0.3
+Jinja2==3.1.6
+Werkzeug==3.0.6
 PyYAML==5.1
 requests==2.6.0
-markupsafe==2.0.1
-itsdangerous==0.24
-gunicorn
+markupsafe==2.1.1
+itsdangerous==2.1.2
+gunicornpython-dotenv==1.0.1

@@ -17,15 +17,23 @@ Ao longo dos encontros, cada uma dessas falhas sera identificada por uma
 ferramenta especifica da esteira e corrigida em uma versao "fixed" do codigo.
 """
 
+import os
 import sqlite3
 
 from flask import Flask, g, redirect, request, session, url_for
+from dotenv import load_dotenv
 
-# Vulnerabilidade #3: segredo hardcoded no repositorio.
-# Uma ferramenta de SAST/secret-scanning (ex: Gitleaks, Semgrep) deve
-# sinalizar esta linha como "Hardcoded Secret".
+load_dotenv()
+
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "s3gr3d0-super-secreto-nao-mude-nunca"
+_secret_key = os.environ.get("TASKFLOW_SECRET_KEY")
+if not _secret_key:
+    raise RuntimeError(
+        "Variavel de ambiente TASKFLOW_SECRET_KEY nao foi definida. "
+        "Configure-a antes de iniciar a aplicacao "
+        "(ex: export TASKFLOW_SECRET_KEY='valor-aleatorio-e-longo')."
+    )
+app.config["SECRET_KEY"] = _secret_key
 
 DATABASE = "taskflow.db"
 
