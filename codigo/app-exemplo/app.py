@@ -22,6 +22,7 @@ import sqlite3
 
 from flask import Flask, g, redirect, request, session, url_for
 from dotenv import load_dotenv
+from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
@@ -77,14 +78,13 @@ def init_db():
 
     cur = db.execute("SELECT COUNT(*) AS total FROM users")
     if cur.fetchone()["total"] == 0:
-        # Vulnerabilidade #4: senha em texto puro, sem hashing.
         db.execute(
             "INSERT INTO users (username, password) VALUES (?, ?)",
-            ("admin", "admin123"),
+            ("admin", generate_password_hash("admin123")),
         )
         db.execute(
             "INSERT INTO users (username, password) VALUES (?, ?)",
-            ("aluno", "senha123"),
+            ("aluno", generate_password_hash("senha123")),
         )
         db.commit()
 
@@ -103,21 +103,13 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        # Vulnerabilidade #1: SQL Injection.
-        # A query e montada por concatenacao de string em vez de usar
-        # parametros preparados (placeholders "?").
-        query = (
-            "SELECT * FROM users WHERE username = '"
-            + username
-            + "' AND password = '"
-            + password
-            + "'"
-        )
         db = get_db()
-        cur = db.execute(query)
+        cur = db.execute(
+            "SELECT * FROM users WHERE username = ?", (username,)
+        )
         user = cur.fetchone()
 
-        if user:
+        if user and check_password_hash(user["password"], password):
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             return redirect(url_for("tasks"))
@@ -149,15 +141,11 @@ def tasks():
     db = get_db()
 
     if search:
-        # Vulnerabilidade #1 (variante): SQL Injection tambem na busca.
-        query = (
-            "SELECT * FROM tasks WHERE user_id = "
-            + str(session["user_id"])
-            + " AND title LIKE '%"
-            + search
-            + "%'"
-        )
-        rows = db.execute(query).fetchall()
+        like_pattern = f"%{search}%"
+        rows = db.execute(
+            "SELECT * FROM tasks WHERE user_id = ? AND title LIKE ?",
+            (session["user_id"], like_pattern),
+        ).fetchall()
     else:
         rows = db.execute(
             "SELECT * FROM tasks WHERE user_id = ?", (session["user_id"],)
