@@ -20,7 +20,7 @@ ferramenta especifica da esteira e corrigida em uma versao "fixed" do codigo.
 import os
 import sqlite3
 
-from flask import Flask, g, redirect, request, session, url_for, render_template_string
+from flask import Flask, g, redirect, request, session, url_for, render_template
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -151,28 +151,8 @@ def tasks():
             "SELECT * FROM tasks WHERE user_id = ?", (session["user_id"],)
         ).fetchall()
 
-    task_list_template = """
-    <h1>Minhas tarefas ({{ username }})</h1>
-    <form method="get">
-        <input type="text" name="q" placeholder="buscar tarefa" value="{{ search }}">
-        <input type="submit" value="Buscar">
-    </form>
-    <ul>
-        {% for row in rows %}
-            <li>
-                <b>{{ row["title"] }}</b> - {{ row["description"] }}
-                {% if row["done"] %}(feita){% endif %}
-            </li>
-        {% else %}
-            <li>Nenhuma tarefa encontrada.</li>
-        {% endfor %}
-    </ul>
-    <a href="{{ url_for('new_task') }}">Nova tarefa</a> |
-    <a href="{{ url_for('logout') }}">Sair</a>
-    """
-
-    return render_template_string(
-        task_list_template,
+    return render_template(
+        "tasks.html",
         rows=rows,
         search=search,
         username=session["username"],
@@ -194,35 +174,13 @@ def new_task():
         db.commit()
         return redirect(url_for("tasks"))
 
-    new_task_template = """
-    <h1>Nova tarefa</h1>
-    <form method="post">
-        <label>Titulo: <input type="text" name="title" required maxlength="100"></label><br>
-        <label>Descricao: <textarea name="description" maxlength="500"></textarea></label><br>
-        <input type="submit" value="Salvar">
-    </form>
-    <a href="{{ url_for('tasks') }}">Voltar</a>
-    """
-
-    return render_template_string(new_task_template)
-
-# Vulnerabilidade #5: endpoint de debug/diagnostico exposto sem
-# autenticacao, vazando informacoes internas do servidor.
-@app.route("/debug/info")
-def debug_info():
-    import platform
-    import sys
-
-    return {
-        "python_version": sys.version,
-        "platform": platform.platform(),
-        "secret_key": app.config["SECRET_KEY"],
-    }
-
+    return render_template("new_task.html")
 
 if __name__ == "__main__":
     with app.app_context():
         init_db()
-    # debug=True em producao expoe o Werkzeug debugger interativo
-    # (execucao remota de codigo) - tambem sera sinalizado pelo SAST.
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    # Mudei o host de 0.0.0.0 para 127.0.0.1 e a porte de
+    # 5000 para 5001 para evitar conflitos com outras aplicacoes locais (Airtop no MacOS).
+    # Talvez seja preciso revisa esse ponto no futuro se precisarmos de um host que expõe
+    # o app a toda a rede.
+    app.run(host="127.0.0.1", port=5001)
