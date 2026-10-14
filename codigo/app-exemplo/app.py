@@ -20,7 +20,7 @@ ferramenta especifica da esteira e corrigida em uma versao "fixed" do codigo.
 import os
 import sqlite3
 
-from flask import Flask, g, redirect, request, session, url_for
+from flask import Flask, g, redirect, request, session, url_for, render_template_string
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -151,29 +151,32 @@ def tasks():
             "SELECT * FROM tasks WHERE user_id = ?", (session["user_id"],)
         ).fetchall()
 
-    items = ""
-    for row in rows:
-        # Vulnerabilidade #2: XSS armazenado. A descricao do usuario e
-        # inserida direto no HTML, sem escaping (Jinja2 com | safe
-        # ou f-string manual como aqui tem o mesmo efeito).
-        items += f"""
-        <li>
-            <b>{row['title']}</b> - {row['description']}
-            {'(feita)' if row['done'] else ''}
-        </li>
-        """
-
-    return f"""
-    <h1>Minhas tarefas ({session['username']})</h1>
+    task_list_template = """
+    <h1>Minhas tarefas ({{ username }})</h1>
     <form method="get">
-        <input type="text" name="q" placeholder="buscar tarefa">
+        <input type="text" name="q" placeholder="buscar tarefa" value="{{ search }}">
         <input type="submit" value="Buscar">
     </form>
-    <ul>{items}</ul>
-    <a href="{url_for('new_task')}">Nova tarefa</a> |
-    <a href="{url_for('logout')}">Sair</a>
+    <ul>
+        {% for row in rows %}
+            <li>
+                <b>{{ row["title"] }}</b> - {{ row["description"] }}
+                {% if row["done"] %}(feita){% endif %}
+            </li>
+        {% else %}
+            <li>Nenhuma tarefa encontrada.</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('new_task') }}">Nova tarefa</a> |
+    <a href="{{ url_for('logout') }}">Sair</a>
     """
 
+    return render_template_string(
+        task_list_template,
+        rows=rows,
+        search=search,
+        username=session["username"],
+    )
 
 @app.route("/tasks/new", methods=["GET", "POST"])
 def new_task():
