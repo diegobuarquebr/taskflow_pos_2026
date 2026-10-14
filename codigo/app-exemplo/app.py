@@ -194,15 +194,17 @@ def new_task():
         db.commit()
         return redirect(url_for("tasks"))
 
-    return """
+    new_task_template = """
     <h1>Nova tarefa</h1>
     <form method="post">
-        Titulo: <input type="text" name="title"><br>
-        Descricao: <textarea name="description"></textarea><br>
+        <label>Titulo: <input type="text" name="title" required maxlength="100"></label><br>
+        <label>Descricao: <textarea name="description" maxlength="500"></textarea></label><br>
         <input type="submit" value="Salvar">
     </form>
+    <a href="{{ url_for('tasks') }}">Voltar</a>
     """
 
+    return render_template_string(new_task_template)
 
 # Vulnerabilidade #5: endpoint de debug/diagnostico exposto sem
 # autenticacao, vazando informacoes internas do servidor.
@@ -223,4 +225,4 @@ if __name__ == "__main__":
         init_db()
     # debug=True em producao expoe o Werkzeug debugger interativo
     # (execucao remota de codigo) - tambem sera sinalizado pelo SAST.
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
