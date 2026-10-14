@@ -158,6 +158,7 @@ def tasks():
         username=session["username"],
     )
 
+
 @app.route("/tasks/new", methods=["GET", "POST"])
 def new_task():
     if "user_id" not in session:
@@ -175,6 +176,7 @@ def new_task():
         return redirect(url_for("tasks"))
 
     return render_template("new_task.html")
+
 
 if __name__ == "__main__":
     with app.app_context():
