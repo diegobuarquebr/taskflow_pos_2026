@@ -24,7 +24,8 @@ jobs:
             --config=p/flask \
             --config=p/security-audit \
             --error \
-            codigo/app-exemplo
+            --exclude=codigo \
+            .
 
   gitleaks:
     name: Secret Scanning - Gitleaks
