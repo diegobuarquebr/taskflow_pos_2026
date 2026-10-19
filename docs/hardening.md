@@ -12,7 +12,7 @@ trivy image --severity HIGH,CRITICAL taskflow:vuln > antes.txt
 
 Comandos rodados a partir da raiz do projeto
 ```
-docker build -t taskflow:hardened -f Dockerfile codigo/app-exemplo
+docker build -t taskflow:hardened .
 trivy image --severity HIGH,CRITICAL taskflow:hardened > depois.txt   
 ```
 [Output to scan trivy](depois.txt) - arquivo com 229 linhas
