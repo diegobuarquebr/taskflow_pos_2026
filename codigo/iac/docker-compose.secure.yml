@@ -17,7 +17,7 @@ version: "3.9"
 services:
   web:
     build:
-      #ontext: ../../
+      #context: ../../
       dockerfile: Dockerfile
     image: taskflow:compose-secure
     ports:
